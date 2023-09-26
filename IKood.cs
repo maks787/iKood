@@ -1,145 +1,196 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
-public class IKood
+namespace isikukood
 {
-    public string Code { get; set; }
-}
 
-public class HospitalService
-{
-    public static string Haigla(string idCode)
+    public class IKood
     {
-        string digits8910 = idCode.Substring(7, 3);
-        int t = int.Parse(digits8910);
+        public string Code { get; set; }
+        public static List<IKood> iKoodList = new List<IKood>();
+        public static string fileName = "ikood.txt";
+        public IKood() { }
 
-        if (t >= 1 && t <= 10)
+        public static void AddIKood()
         {
-            return "Kuressaare haigla";
+            Console.Write("Sisesta isikukood: ");
+            string idCode = Console.ReadLine();
+
+            if (!IsValidLength(idCode))
+            {
+                Console.WriteLine("Liiga pikk või lühike isikukood");
+            }
+            else if (!idCode.All(char.IsDigit))
+            {
+                Console.WriteLine("Vaja ainult numbrite sisestamine");
+            }
+            else
+            {
+                iKoodList.Add(new IKood { Code = idCode });
+                Console.WriteLine("Isikukood lisatud edukalt.");
+                SaveIKoodToFile(); // Сохраняем IKood в файл после добавления
+            }
         }
-        else if (t >= 11 && t <= 19)
+
+        public static void DeleteIKood()
         {
-            return "Tartu Ülikooli Naistekliinik";
+            Console.Write("Sisesta isikukood, mida soovid kustutada: ");
+            string idCode = Console.ReadLine();
+
+            IKood iKoodToDelete = iKoodList.FirstOrDefault(i => i.Code == idCode);
+
+            if (iKoodToDelete != null)
+            {
+                iKoodList.Remove(iKoodToDelete);
+                Console.WriteLine("Isikukood kustutatud edukalt.");
+                SaveIKoodToFile(); // Сохраняем IKood в файл после удаления
+            }
+            else
+            {
+                Console.WriteLine("Isikukoodi ei leitud.");
+            }
         }
-        else if (t >= 21 && t <= 150)
+
+        public static void SearchIKood()
         {
-            return "Ida-Tallinna keskhaigla, Pelgulinna sünnitusmaja (Tallinn)";
+            Console.Write("Sisesta isikukood, mida soovid otsida: ");
+            string idCode = Console.ReadLine();
+
+            IKood iKoodToSearch = iKoodList.FirstOrDefault(i => i.Code == idCode);
+
+            if (iKoodToSearch != null)
+            {
+                Console.WriteLine($"See on {GetGender(idCode)} ta on sündinud {GetBirthDate(idCode)}, tema sünnikoht on {HospitalService.Haigla(idCode)}");
+            }
+            else
+            {
+                Console.WriteLine("Isikukoodi ei leitud.");
+            }
         }
-        else if (t >= 151 && t <= 160)
+
+        static bool IsValidLength(string idCode)
         {
-            return "Keila haigla";
+            return idCode.Length == 11;
         }
-        else if (t >= 161 && t <= 220)
+
+        static string GetGender(string idCode)
         {
-            return "Rapla haigla, Loksa haigla, Hiiumaa haigla (Kärdla)";
+            char firstDigit = idCode[0];
+
+            if (new[] { '1', '3', '5' }.Contains(firstDigit))
+            {
+                return "mees";
+            }
+            else if (new[] { '2', '4', '6' }.Contains(firstDigit))
+            {
+                return "naine";
+            }
+            else
+            {
+                return "viga";
+            }
         }
-        else if (t >= 221 && t <= 270)
+
+        static string GetBirthDate(string idCode)
         {
-            return "Ida-Viru keskhaigla (Kohtla-Järve, endine Jõhvi)";
+            string year = idCode.Substring(1, 2);
+            string month = idCode.Substring(3, 2);
+            string day = idCode.Substring(5, 2);
+
+            return $"{day}.{month}.{year}";
         }
-        else if (t >= 271 && t <= 370)
+        public static void LoadIKoodFromFile()
         {
-            return "Maarjamõisa kliinikum (Tartu), Jõgeva haigla";
+            if (File.Exists(fileName))
+            {
+                string[] lines = File.ReadAllLines(fileName);
+                iKoodList = lines.Select(line => new IKood { Code = line }).ToList();
+            }
         }
-        else if (t >= 371 && t <= 420)
+
+
+        static void SaveIKoodToFile()
         {
-            return "Narva haigla";
+            File.WriteAllLines(fileName, iKoodList.Select(i => i.Code));
         }
-        else if (t >= 421 && t <= 470)
+    }
+
+    public class HospitalService
+    { 
+        public static string Haigla(string idCode)
         {
-            return "Pärnu haigla";
+            string digits8910 = idCode.Substring(7, 3);
+            int t = int.Parse(digits8910);
+
+            if (t >= 1 && t <= 10)
+            {
+                return "Kuressaare haigla";
+            }
+            else if (t >= 11 && t <= 19)
+            {
+                return "Tartu Ülikooli Naistekliinik";
+            }
+            else if (t >= 21 && t <= 150)
+            {
+                return "Ida-Tallinna keskhaigla, Pelgulinna sünnitusmaja (Tallinn)";
+            }
+            else if (t >= 151 && t <= 160)
+            {
+                return "Keila haigla";
+            }
+            else if (t >= 161 && t <= 220)
+            {
+                return "Rapla haigla, Loksa haigla, Hiiumaa haigla (Kärdla)";
+            }
+            else if (t >= 221 && t <= 270)
+            {
+                return "Ida-Viru keskhaigla (Kohtla-Järve, endine Jõhvi)";
+            }
+            else if (t >= 271 && t <= 370)
+            {
+                return "Maarjamõisa kliinikum (Tartu), Jõgeva haigla";
+            }
+            else if (t >= 371 && t <= 420)
+            {
+                return "Narva haigla";
+            }
+            else if (t >= 421 && t <= 470)
+            {
+                return "Pärnu haigla";
+            }
+            else if (t >= 471 && t <= 490)
+            {
+                return "Haapsalu haigla";
+            }
+            else if (t >= 491 && t <= 520)
+            {
+                return "Järvamaa haigla (Paide)";
+            }
+            else if (t >= 521 && t <= 570)
+            {
+                return "Rakvere haigla,";
+         
+                
+            }
+            else if (t >= 571 && t <= 600)
+            {
+                return "Valga haigla";
+            }
+            else if (t >= 601 && t <= 650)
+            {
+                return "Viljandi haigla";
+            }
+            else if (t >= 651 && t <= 700)
+            {
+                return "Lõuna-Eesti haigla (Võru), Põlva haigla";
+            }
+            else
+            {
+                return "teine ​​haigla";
+            }
         }
-        else if (t >= 471 && t <= 490)
-        {
-            return "Haapsalu haigla";
-        }
-        else if (t >= 491 && t <= 520)
-        {
-            return "Järvamaa haigla (Paide)";
-        }
-        else if (t >= 521 && t <= 570)
-        {
-            return "Rakvere haigla," +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                "" +
-                " Tapa haigla";
-        }
-        else if (t >= 571 && t <= 600)
-        {
-            return "Valga haigla";
-        }
-        else if (t >= 601 && t <= 650)
-        {
-            return "Viljandi haigla";
-        }
-        else if (t >= 651 && t <= 700)
-        {
-            return "Lõuna-Eesti haigla (Võru), Põlva haigla";
-        }
-        else
-        {
-            return "teine ​​haigla";
-        }
+    
+
     }
 }
